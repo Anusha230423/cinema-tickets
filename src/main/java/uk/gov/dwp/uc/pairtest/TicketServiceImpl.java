@@ -15,21 +15,21 @@ public class TicketServiceImpl implements TicketService {
             // check if "ADULT" is present or not
             boolean valid = validateRequests(true, ticketTypeRequests);
             if (!valid) {
-                new InvalidPurchaseException(
+                throw new InvalidPurchaseException(
                         "Child and Infant tickets cannot be purchased without purchasing an Adult ticket.");
             }
             // check for maximum number of tickets
             boolean checkMax = validateRequests(false, ticketTypeRequests);
             if (!checkMax) {
-                new InvalidPurchaseException(
+                throw new InvalidPurchaseException(
                         "Only a maximum of 20 tickets that can be purchased at a time.");
             }
             // Printing total amount to pay
-            System.out.println("Total amount to pay: " + this.totalAmountToPay(ticketTypeRequests));
+            System.out.printf("Total amount to pay: £%.2f\n", this.totalAmountToPay(ticketTypeRequests));
 
-            System.out.println("Total seats to allocate: " + this.totalSeatsToAllocate());
+            System.out.print("Total seats to allocate: " + this.totalSeatsToAllocate(ticketTypeRequests));
         } else {
-            new InvalidPurchaseException("Invalid account id: " + accountId);
+            throw new InvalidPurchaseException("Invalid account id: " + accountId);
         }
 
     }
@@ -41,7 +41,7 @@ public class TicketServiceImpl implements TicketService {
                     return true;
                 }
             } else {
-                if (ticket.getNoOfTickets() < 20) {
+                if (ticket.getNoOfTickets() <= 20) {
                     return true;
                 }
             }
@@ -53,8 +53,8 @@ public class TicketServiceImpl implements TicketService {
         double totalCost = 0.00;
         for (TicketTypeRequest ticket : ticketTypeRequests) {
             double ticketCost = switch (ticket.getTicketType().toString()) {
-                case "ADULT" -> ticket.getNoOfTickets() * 50;
-                case "CHILD" -> ticket.getNoOfTickets() * 20;
+                case "ADULT" -> ticket.getNoOfTickets() * 20;
+                case "CHILD" -> ticket.getNoOfTickets() * 10;
                 case "INFANT" -> 0.00;
                 default -> 0.00;
             };
@@ -63,7 +63,13 @@ public class TicketServiceImpl implements TicketService {
         return totalCost;
     }
 
-    private int totalSeatsToAllocate() {
-        return 0;
+    private int totalSeatsToAllocate(TicketTypeRequest... ticketTypeRequests) {
+        int totalTickets = 0;
+        for (TicketTypeRequest ticket : ticketTypeRequests) {
+            if (ticket.getTicketType().toString() != "INFANT") {
+                totalTickets += ticket.getNoOfTickets();
+            }
+        }
+        return totalTickets;
     }
 }
